@@ -1,63 +1,40 @@
 function TMain()
 {
-	
-	// tasks
-	// DONE 0. Make Reset button do its action
-	// DONE AS OPTION 1. display weight on chumadan
-	// DONE 2. add light (green/red) displaying weighting result
-	// 3. optional - add arrow showing what direction is heavier
-	// DONE 4. if weight is same = light green, if weight exists and not same - light red, if no weight on scales - light gray
-	// DONE 5. fix offset of dragged chumadan
-	
-var main = this;
-main.carriedChemodanID = "";
-main.carriedChemodanOffset = [];
-main.chumadans = [];
-main.left_scale = {};
-main.right_scale = {};
-main.floorTop = 600,
-main.gravityAccel = 0.3;
+var carriedChemodanID = "";
+var carriedChemodanOffset = [];
+var chumadans = [];
+var left_scale = {};
+var right_scale = {};
+var floorTop = 600;
+var gravityAccel = 0.3;
+var scaleBounciness = 0.5; // more will make scales flex further before contracting
+var currentOrder = 0;
+document.getElementById("Reset").addEventListener("click", init);
+document.getElementById("displayWeighs").addEventListener("click", optionsDisplayWeighs);
+document.getElementById("scaleArrow").addEventListener("click",optionsDisplayArrow);
 
-main.optionsDisplayWeighs = function() {
-	if (document.getElementById("displayWeighs").checked) {
-		for (var i = 0; i < main.chumadans.length; i++) {
-			document.getElementById("bag"+i).innerHTML = main.chumadans[i].weight;
-		}
+init();
+setInterval(tick, 30);
+
+function init() {
+		// Randomize initial bag positions by using array shuffle.
+	var positionArr = [0,1,2,3,4,5,6,7,8,9,10,11];
+	var counter = 12;
+	var index;
+	var temp;
+	while (counter > 0) {
+		counter--;
+		index = Math.floor(Math.random() * counter);
+		temp = positionArr[counter];
+        positionArr[counter] = positionArr[index];
+        positionArr[index] = temp;
 	}
-	else {
-		for (var i = 0; i < main.chumadans.length; i++) {
-			document.getElementById("bag"+i).innerHTML = "";
-		}
-	}
-}
-
-main.optionsDisplayArrow = function() {
-	if ( document.getElementById("scaleArrow").checked ) document.getElementById("arrow").style.visibility = "initial" ;
-	else document.getElementById("arrow").style.visibility = "hidden";
-}
-
-setIndicator = function(color) {
-	document.getElementById("indicator").style.backgroundColor = color;
-}
-
-main.updateScale = function(whichScale, cheweight) {
-	if (whichScale=="left") { main.left_scale.totalWeight += cheweight; }
-	if (whichScale=="right") { main.right_scale.totalWeight += cheweight; }
-	if (main.right_scale.totalWeight == 0 && main.left_scale.totalWeight == 0) { setIndicator("lightgrey"); }
-	else if	(main.right_scale.totalWeight == main.left_scale.totalWeight) { setIndicator("limegreen"); }
-	else { setIndicator("red"); }
-}
-
-main.init = function() {
-	document.getElementById("Reset").addEventListener("click", main.init);
-	document.getElementById("displayWeighs").addEventListener("click", main.optionsDisplayWeighs);
-	document.getElementById("scaleArrow").addEventListener("click",main.optionsDisplayArrow);
-
+		// Init bags objects and update bag positions on page.
 	for (var i = 0 ; i < 12 ; i++) {
 		var id = "bag"+i;
-		var left = 360 + 30*i
-		main.chumadans[i] = {
-			"weight" : 10,
+		var left = 360 + 30*positionArr[i];
+		chumadans[i] = {
+			"weight" : 10+10*i,
 			"speed"  : 0,
 			"id"     : id,
 			"top"    : 400,
@@ -66,65 +43,63 @@ main.init = function() {
 			"height" : 35,
 			"right"  : left + 25,
 			"bottom" : 435,
+			"zIndex" : 0,
+			"boundTo": "none"
 		}
-		document.getElementById(id).style.left = main.chumadans[i].left + "px";
-		document.getElementById(id).style.top = main.chumadans[i].top + "px";
-//		document.getElementById(id).innerHTML = main.chumadans[i].weight;
+		document.getElementById(id).style.left = chumadans[i].left + "px";
 	}
 
-	setIndicator("lightgrey");
+	setIndicator("lightgrey", "|");
 
-	main.left_scale = {
+	left_scale = {
 		"id" : "left_scale",
-		"left"  : 200,
-		"right" : 450,
-		"top"   : 300,
-		"bottom": 335,
-		"totalWeight" : 0
+		"left"        : 200,
+		"right"       : 450,
+		"top"         : 300,
+		"bottom"      : 335,
+		"totalWeight" : 0,
+		"flexForce"   : -scaleBounciness,
+		"flexOffset"  : 0,
 	}
-	
-	main.right_scale = {
-		"id" : "right_scale",
-		"left"  : 600,
-		"right" : 850,
-		"top"   : 300,
-		"bottom": 335,
-		"totalWeight" : 0
+	right_scale = {
+		"id"          : "right_scale",
+		"left"        : 600,
+		"right"       : 850,
+		"top"         : 300,
+		"bottom"      : 335,
+		"totalWeight" : 0,
+		"flexForce"   : -scaleBounciness,
+		"flexOffset"  : 0,
 	}
-
-//	console.log(main.chumadans, main.right_scale, main.left_scale)
+	optionsDisplayArrow();
 }
 
-main.init();
-//console.log(main.left_scale, main.right_scale)
-
-main.tick = function(){
+function tick(){
 	for (var i = 0 ; i < 12 ; i++) {
 		var id = "bag"+i;
-		var che = main.chumadans[i];
-		che.speed += main.gravityAccel;
+		var che = chumadans[i];
+		che.speed += gravityAccel;
 		che.bottom = che.top+che.height;
 		che.right = che.left+che.width;
-		
-		if (che.bottom + che.speed >= main.floorTop) {
-			che.top = main.floorTop - che.height;
-			che.speed = 0;
-//			console.log(che, main.left_scale, main.right_scale)
-		}
-		else if (che.bottom + che.speed >= main.left_scale.top && che.right > main.left_scale.left && che.left < main.left_scale.right && che.top < main.left_scale.bottom) {
-			if (che.bottom < main.left_scale.top) {
-				main.updateScale("left",che.weight);
-				console.log("LEFT - " + main.left_scale.totalWeight);
-			}
-			che.top = main.left_scale.top - che.height;
+			// Check if bag hits floor or both scales. If not, continue accelerating.
+		if (che.bottom + che.speed >= floorTop) {
+			che.top = floorTop - che.height;
 			che.speed = 0;
 		}
-		else if (che.bottom + che.speed >= main.right_scale.top && che.right > main.right_scale.left && che.left < main.right_scale.right && che.top < main.right_scale.bottom) {
-			if (che.bottom < main.right_scale.top) {
-				main.updateScale("right",che.weight);
-				console.log("RIGHT - " + main.right_scale.totalWeight);
+		else if (che.bottom + che.speed >= left_scale.top && che.right > left_scale.left && che.left < left_scale.right && che.top < left_scale.top) {
+			if (che.bottom < left_scale.top) {
+				updateScale("left",che.weight,che);
+				console.log("LEFT - " + left_scale.totalWeight);
 			}
-			che.top = main.right_scale.top - che.height;
+			che.top = left_scale.top - che.height;
+			che.speed = 0;
+		}
+		else if (che.bottom + che.speed >= right_scale.top && che.right > right_scale.left && che.left < right_scale.right && che.top < right_scale.top) {
+			if (che.bottom < right_scale.top) {
+				updateScale("right",che.weight,che);
+				console.log("RIGHT - " + right_scale.totalWeight);
+			}
+			che.top = right_scale.top - che.height;
 			che.speed = 0;
 		}
 		else {
@@ -132,74 +107,164 @@ main.tick = function(){
 		}
 		document.getElementById(id).style.top = che.top + "px";
 	}
+		// Check if scales are in mid-bounce and add a temporary offset going from 0 to scaleBounciness and back to 0 to scale and bags that are on it. 
+	if (left_scale.flexForce > -scaleBounciness) {
+		left_scale.flexOffset += left_scale.flexForce;
+		var tempTop = left_scale.top + left_scale.flexOffset;
+		document.getElementById("left_scale").style.top = tempTop + "px";
+		for (var i = 0 ; i < 12 ; i++) {
+			if (chumadans[i].boundTo == "left") {
+				tempTop = left_scale.top + left_scale.flexOffset - chumadans[i].height;
+				document.getElementById(chumadans[i].id).style.top = tempTop + "px";
+			}
+		}
+		left_scale.flexForce -= scaleBounciness/15
+	}
+	else if (left_scale.flexOffset != 0) {
+		left_scale.flexOffset = 0;
+		document.getElementById("left_scale").style.top = left_scale.top + "px";
+		for (var i = 0 ; i < 12 ; i++) {
+			if (chumadans[i].boundTo == "left") {
+				document.getElementById(chumadans[i].id).style.top = chumadans[i].top + "px";
+			}
+		}
+	}
+		// repeat above for right scale
+	if (right_scale.flexForce > -scaleBounciness) {
+		right_scale.flexOffset += right_scale.flexForce;
+		var tempTop = right_scale.top + right_scale.flexOffset;
+		document.getElementById("right_scale").style.top = tempTop + "px";
+		for (var i = 0 ; i < 12 ; i++) {
+			if (chumadans[i].boundTo == "right") {
+				tempTop = right_scale.top + right_scale.flexOffset - chumadans[i].height;
+				document.getElementById(chumadans[i].id).style.top = tempTop + "px";
+			}
+		}
+		right_scale.flexForce -= scaleBounciness/15
+	}
+	else if (right_scale.flexOffset != 0) {
+		right_scale.flexOffset = 0;
+		document.getElementById("right_scale").style.top = right_scale.top + "px";
+		for (var i = 0 ; i < 12 ; i++) {
+			if (chumadans[i].boundTo == "right") {
+				document.getElementById(chumadans[i].id).style.top = chumadans[i].top + "px";
+			}
+		}
+	}
 }
 
-setInterval(main.tick, 30);
-
-/*OPTIONS*/
-
-
-
-main.optionsDisplayWeighs();
-
-/*
-function getElementPixelProperty(id, propertyName) {
-var stringProperty = document.getElementById(id).style[propertyName];
-if (stringProperty == "" || stringProperty == undefined) {
-console.log("empty!", id, propertyName)
+function optionsDisplayWeighs() {
+	if (document.getElementById("displayWeighs").checked) {
+		for (var i = 0; i < chumadans.length; i++) {
+			document.getElementById("bag"+i).innerHTML = chumadans[i].weight;
+		}
+	}
+	else {
+		for (var i = 0; i < chumadans.length; i++) {
+			document.getElementById("bag"+i).innerHTML = "";
+		}
+	}
 }
-return parseInt(stringProperty.substring(0, stringProperty.length - 2));
+
+function optionsDisplayArrow() {
+	if (document.getElementById("scaleArrow").checked ) 
+		document.getElementById("indicatorText").style.visibility = "visible";
+	else 
+		document.getElementById("indicatorText").style.visibility = "hidden";
 }
-*/
 
-// chumadan events
+function setIndicator(color, indicatorText="") {
+	document.getElementById("indicator").style.backgroundColor = color;
+	document.getElementById("indicatorText").innerHTML = indicatorText;
+	optionsDisplayArrow();
+}
 
+function updateScale(whichScale, cheWeight, chumadan) {
+	if (whichScale=="left") { 
+		left_scale.totalWeight += cheWeight;
+	}
+	if (whichScale=="right") { 
+		right_scale.totalWeight += cheWeight;
+	}
+	
+	if (right_scale.totalWeight == 0 && left_scale.totalWeight == 0) { 
+		setIndicator("lightgrey", "|");
+	}
+	else if	(left_scale.totalWeight == right_scale.totalWeight) {
+		setIndicator("limegreen", "="); 
+	}
+	else if (left_scale.totalWeight > right_scale.totalWeight) {
+		setIndicator("red", "<"); 
+	}
+	else {
+		setIndicator("red", ">"); 
+	}
+	
+	if (cheWeight > 0) {
+		chumadan.boundTo = whichScale;
+		animateScale(whichScale)
+	}
+	else
+	{
+		chumadan.boundTo = "none";
+	}
+}
+
+function animateScale(whichScale) {
+	if (whichScale == "left") {
+		left_scale.flexForce = scaleBounciness;
+	}
+	else {
+		right_scale.flexForce = scaleBounciness;
+	}
+}
+
+	// DOCUMENT EVENTS
+	// Bag drag event
 document.ondragstart = function(event) {
-//	console.log("ondragstart", event);
-//	console.log("chemodan", event.target.id);
-	main.carriedChemodanID = event.target.id;
-
+	carriedChemodanID = event.target.id;
 	var carriedChemodan;
 	for (var i = 0; i < 12; i++) {
-		if (main.chumadans[i].id == event.target.id) { carriedChemodan = main.chumadans[i]; }
+		if (chumadans[i].id == event.target.id) {
+			carriedChemodan = chumadans[i]; 
+		}
 	}
-
 	carriedChemodanOffset = [event.clientX - carriedChemodan.left, event.clientY - carriedChemodan.top]
-
-	if ( carriedChemodan.top + carriedChemodan.height == main.left_scale.top) {
-		if ( carriedChemodan.right > main.left_scale.left && carriedChemodan.left < main.left_scale.right) {
-			main.updateScale("left",-carriedChemodan.weight);
-			console.log("LEFT - " + main.left_scale.totalWeight);
+	if (carriedChemodan.top + carriedChemodan.height == left_scale.top) {
+		if (carriedChemodan.right > left_scale.left && carriedChemodan.left < left_scale.right) {
+			updateScale("left",-carriedChemodan.weight, carriedChemodan);
+			console.log("LEFT - " + left_scale.totalWeight);
 		}
 	}
 
-	if ( carriedChemodan.top + carriedChemodan.height == main.right_scale.top) {
-		if ( carriedChemodan.right > main.right_scale.left && carriedChemodan.left < main.right_scale.right) {
-			main.updateScale("right",-carriedChemodan.weight);
-			console.log("RIGHT - " + main.right_scale.totalWeight);
+	if (carriedChemodan.top + carriedChemodan.height == right_scale.top) {
+		if (carriedChemodan.right > right_scale.left && carriedChemodan.left < right_scale.right) {
+			updateScale("right",-carriedChemodan.weight, carriedChemodan);
+			console.log("RIGHT - " + right_scale.totalWeight);
 		}
 	}
 }
-
-document.ondragover = function(event) { event.preventDefault(); }
-
+	// Page drag events
+document.ondragover = function(event) {
+	event.preventDefault();
+}
 document.ondrop = function(event) {
-//	console.log("ondrop", event);
 	event.preventDefault();
 	if (event.target.id == "left_scale" || event.target.id == "right_scale") {
 		console.log("drop not allowed")
 	}
 	else {
-		for (var i = 0 ; i < main.chumadans.length; i++) {
-			if (main.carriedChemodanID == main.chumadans[i].id) {
-				console.log(event, main.chumadans[i]);
-				main.chumadans[i].left = event.clientX - carriedChemodanOffset[0];
-				main.chumadans[i].top = event.clientY - carriedChemodanOffset[1];
+		for (var i = 0 ; i < chumadans.length; i++) {
+			if (carriedChemodanID == chumadans[i].id) {
+				chumadans[i].left = event.clientX - carriedChemodanOffset[0];
+				chumadans[i].top = event.clientY - carriedChemodanOffset[1];
+				chumadans[i].zIndex = currentOrder++;
+				document.getElementById(carriedChemodanID).style.left = event.clientX - carriedChemodanOffset[0] + "px";
+				document.getElementById(carriedChemodanID).style.top = event.clientY - carriedChemodanOffset[1] + "px";
+				document.getElementById(carriedChemodanID).style.zIndex = chumadans[i].zIndex;
 			}
 		}
-		document.getElementById(main.carriedChemodanID).style.left = event.clientX - carriedChemodanOffset[0] + "px";
-		document.getElementById(main.carriedChemodanID).style.top = event.clientY - carriedChemodanOffset[1] + "px";
-		main.carriedChemodanID = "";
+		carriedChemodanID = "";
 	}
 }
 
