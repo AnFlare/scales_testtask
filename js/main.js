@@ -87,7 +87,7 @@ function tick(){
 			che.speed = 0;
 		}
 		else if (che.bottom + che.speed >= left_scale.top && che.right > left_scale.left && che.left < left_scale.right && che.top < left_scale.top) {
-			if (che.bottom < left_scale.top) {
+			if (che.bottom != left_scale.top) {
 				updateScale("left",che.weight,che);
 				console.log("LEFT - " + left_scale.totalWeight);
 			}
@@ -95,7 +95,7 @@ function tick(){
 			che.speed = 0;
 		}
 		else if (che.bottom + che.speed >= right_scale.top && che.right > right_scale.left && che.left < right_scale.right && che.top < right_scale.top) {
-			if (che.bottom < right_scale.top) {
+			if (che.bottom != right_scale.top) {
 				updateScale("right",che.weight,che);
 				console.log("RIGHT - " + right_scale.totalWeight);
 			}
