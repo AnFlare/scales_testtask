@@ -1,0 +1,87 @@
+/*
+	ОСНОВНОЙ CSS
+*/
+
+#up_wrapper {
+	width: 100%;
+}
+
+#up_wrapper button {
+	float: left;
+}
+
+#options {
+	display: inline-block;
+    vertical-align: -2px;
+    margin-left: 15px;
+}
+
+#options span { font-weight: bold; }
+
+#options label { margin-right: 5px; }
+
+#notes {
+	float: right;
+}
+
+/* SCALES */
+
+#scales {
+	width: 35%;
+	height: 400px;
+	margin: 0 auto;
+}
+
+#indicator {
+	background-color: red;
+width: 50px;
+    height: 15px;
+    border-radius: 4px;
+    position: absolute;
+    top: 30%;
+    left: 375pt;
+}
+
+#arrow {
+	width: 2px;
+    height: 15px;
+    margin: 0 auto;
+    background-color: black;
+    visibility: hidden;
+}
+
+#left_scale, #right_scale {
+	width: 250px;
+	height: 35px;
+	background-color: darkblue;
+	border-radius: 0 0 40px 40px;
+	top: 300px;
+    position: absolute;
+}
+#left_scale { left: 200px; }
+#right_scale { left: 600px; }
+
+/* WEIGHS */
+
+#weighs {
+	height: 200px;
+	width: 26%;
+    margin: 0 auto;
+}
+
+.bag {
+	width: 25px;
+	height: 35px;
+	background-color: darkorange;
+	display: inline-block;
+	margin-right: 15px;
+	position: absolute;
+}
+
+#floor {
+    height: 6px;
+    width: 100%;
+    background-color: darkgrey;
+    position: fixed;
+    top: 600px;
+}
